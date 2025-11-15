@@ -7,6 +7,11 @@ export type Person = {
   face_count: number;
 };
 
+export type PersonSimple = {
+  id: string;
+  name: string;
+};
+
 export type PersonDetails = {
   id: string;
   name: string;
