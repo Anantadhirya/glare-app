@@ -64,7 +64,7 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
     }
 
     if (!selectedPersonId) {
-      alert("Please select or create a person");
+      alert("Please select or add a person");
       return;
     }
 

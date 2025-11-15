@@ -14,7 +14,7 @@ interface PersonSelectProps {
 export function PersonSelect({
   value,
   onSelect,
-  placeholder = "Search or create new person...",
+  placeholder = "Search or add new person...",
   disabled = false,
 }: PersonSelectProps) {
   const [persons, setPersons] = useState<PersonSimple[]>([]);
@@ -34,6 +34,9 @@ export function PersonSelect({
       if (selectedPerson) {
         setSearchValue(selectedPerson.name);
       }
+    } else if (!value) {
+      // Clear search value when value is reset to empty
+      setSearchValue("");
     }
   }, [value, persons]);
 
@@ -46,9 +49,9 @@ export function PersonSelect({
     }
   };
 
-  const filteredPersons = persons.filter((p) =>
-    p.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const filteredPersons = persons
+    .filter((p) => p.name !== "Unknown") // Exclude Unknown persons
+    .filter((p) => p.name.toLowerCase().includes(searchValue.toLowerCase()));
 
   const isNewPerson =
     searchValue.trim() &&
@@ -75,7 +78,7 @@ export function PersonSelect({
       setShowDropdown(false);
       setActiveIndex(0);
     } catch (err) {
-      alert("Failed to create person");
+      alert("Failed to add person");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -200,7 +203,7 @@ export function PersonSelect({
                       "Creating..."
                     ) : (
                       <>
-                        Create new person: <strong>{searchValue.trim()}</strong>
+                        Add new person: <strong>{searchValue.trim()}</strong>
                       </>
                     )}
                   </span>
