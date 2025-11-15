@@ -121,11 +121,11 @@ export default function Home() {
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                     {persons.length > 0
-                      ? Math.round(
+                      ? (
                           persons.reduce((sum, p) => sum + p.face_count, 0) /
-                            persons.length
-                        )
-                      : 0}
+                          persons.length
+                        ).toFixed(1)
+                      : "0.0"}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     Avg. Faces/Person

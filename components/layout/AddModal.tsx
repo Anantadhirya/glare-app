@@ -4,20 +4,21 @@ import { useState, useRef } from "react";
 import { PersonSelect } from "./PersonSelect";
 import { add_new_face } from "./actions";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface AddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
-export function AddModal({ isOpen, onClose, onSuccess }: AddModalProps) {
+export function AddModal({ isOpen, onClose }: AddModalProps) {
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -69,9 +70,9 @@ export function AddModal({ isOpen, onClose, onSuccess }: AddModalProps) {
 
     try {
       setIsUploading(true);
-      await add_new_face(selectedPersonId, selectedFile);
+      const { id } = await add_new_face(selectedPersonId, selectedFile);
       handleClose();
-      if (onSuccess) onSuccess();
+      router.push(`/face/${id}`);
     } catch (err) {
       alert("Failed to add face");
       console.error(err);

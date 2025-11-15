@@ -1,20 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { AddModal } from "./AddModal";
 import { get_unverified_count } from "./actions";
 
 export function Navbar() {
-  const router = useRouter();
   const [pendingCount, setPendingCount] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const userEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL || "user@example.com";
-
-  const handleAddSuccess = () => {
-    router.refresh();
-  };
 
   useEffect(() => {
     const fetchPendingCount = async () => {
@@ -128,11 +122,7 @@ export function Navbar() {
       </nav>
 
       {/* Add Modal - rendered outside nav to fix position: fixed */}
-      <AddModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSuccess={handleAddSuccess}
-      />
+      <AddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
     </>
   );
 }
