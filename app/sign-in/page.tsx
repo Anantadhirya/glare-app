@@ -35,7 +35,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex items-center justify-center p-6">
+    <div className="min-h-dvh bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex items-center justify-center p-6">
       {/* Header (small) */}
       <header className="absolute top-6 left-6 right-6 md:left-12 md:right-auto flex items-center justify-center md:justify-start">
         <div className="flex items-center space-x-3">

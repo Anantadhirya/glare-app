@@ -80,7 +80,7 @@ export default function PersonDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
+      <main className="grow bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center py-20">
             <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg px-6 py-4">
@@ -97,7 +97,7 @@ export default function PersonDetailPage() {
 
   if (error || !person) {
     return (
-      <main className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
+      <main className="grow bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-red-200/50 dark:border-red-700/50 shadow-lg p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-linear-to-br from-red-500 to-pink-500 mb-3">
@@ -131,7 +131,7 @@ export default function PersonDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
+    <main className="grow bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
