@@ -239,7 +239,18 @@ export default function Home() {
                 {/* Info */}
                 <div className="p-4">
                   <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {person.name}
+                    {person.name === "Unknown" ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="text-amber-600 dark:text-amber-400">
+                          Unknown
+                        </span>
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                          Identify
+                        </span>
+                      </span>
+                    ) : (
+                      person.name
+                    )}
                   </h3>
                   <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                     <svg

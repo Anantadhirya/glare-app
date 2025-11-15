@@ -188,7 +188,18 @@ export default function PersonDetailPage() {
               ) : (
                 <div>
                   <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-                    {person.name}
+                    {person.name === "Unknown" ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="text-amber-600 dark:text-amber-400">
+                          Unknown
+                        </span>
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                          Identify
+                        </span>
+                      </span>
+                    ) : (
+                      person.name
+                    )}
                   </h1>
                   <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
                     <span className="flex items-center gap-1">
