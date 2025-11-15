@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
+import { PendingCountProvider } from "@/components/layout/PendingCountProvider";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -30,9 +31,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
-      <Navbar />
-      {children}
-    </div>
+    <PendingCountProvider>
+      <div className="min-h-dvh flex flex-col">
+        <Navbar />
+        {children}
+      </div>
+    </PendingCountProvider>
   );
 }

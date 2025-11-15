@@ -7,8 +7,10 @@ import { PersonSelect } from "@/components/layout/PersonSelect";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { delete_face } from "../face/[id]/actions";
+import { usePendingCount } from "@/components/layout/PendingCountProvider";
 
 export default function VerificationPage() {
+  const { refreshPendingCount } = usePendingCount();
   const [faces, setFaces] = useState<Face[]>([]);
   const [selectedFace, setSelectedFace] = useState<Face | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -73,6 +75,7 @@ export default function VerificationPage() {
       setSelectedFace(updatedFaces[0] || null);
       setSelectedGroupId(null);
       setSelectedPersonId("");
+      refreshPendingCount();
     } catch (err) {
       alert("Failed to identify person");
       console.error(err);
@@ -93,6 +96,7 @@ export default function VerificationPage() {
       const updatedFaces = faces.filter((f) => f.id !== selectedFace.id);
       setFaces(updatedFaces);
       setSelectedFace(updatedFaces[0] || null);
+      refreshPendingCount();
     } catch (err) {
       alert("Failed to verify face");
       console.error(err);
