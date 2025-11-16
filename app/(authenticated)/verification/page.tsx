@@ -386,7 +386,7 @@ export default function VerificationPage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">
                           {selectedGroupFaces.length} faces in this group
                         </p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-2 max-h-86 overflow-y-auto">
                           {selectedGroupFaces.map((face) => (
                             <div
                               key={face.id}
