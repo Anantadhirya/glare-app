@@ -121,8 +121,45 @@ export default function VerificationPage() {
       const updatedFaces = faces.filter((f) => f.id !== selectedFace.id);
       setFaces(updatedFaces);
       setSelectedFace(updatedFaces[0] || null);
+      refreshPendingCount();
     } catch (err) {
       alert("Failed to reject face");
+      console.error(err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRejectUnknown = async () => {
+    if (!selectedFace) return;
+
+    const groupPersonId = selectedFace.person_id;
+    const groupFaces = faces.filter((f) => f.person_id === groupPersonId);
+
+    const message =
+      groupFaces.length > 1
+        ? `Are you sure you want to reject all ${groupFaces.length} faces in this group? They will all be deleted.`
+        : "Are you sure you want to reject this face? It will be deleted.";
+
+    if (!confirm(message)) {
+      return;
+    }
+
+    try {
+      setProcessingId(groupPersonId);
+
+      // Delete all faces in the group
+      await Promise.all(groupFaces.map((face) => delete_face(face.id)));
+
+      // Remove all grouped faces from list
+      const updatedFaces = faces.filter((f) => f.person_id !== groupPersonId);
+      setFaces(updatedFaces);
+      setSelectedFace(updatedFaces[0] || null);
+      setSelectedGroupId(null);
+      setSelectedPersonId("");
+      refreshPendingCount();
+    } catch (err) {
+      alert("Failed to reject faces");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -424,6 +461,13 @@ export default function VerificationPage() {
                               : selectedGroupFaces.length > 1
                               ? `Identify All ${selectedGroupFaces.length} Faces`
                               : "Identify & Verify"}
+                          </button>
+                          <button
+                            onClick={handleRejectUnknown}
+                            disabled={processingId === selectedFace.person_id}
+                            className="px-4 py-2 rounded-md font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Reject
                           </button>
                         </div>
                       </div>
