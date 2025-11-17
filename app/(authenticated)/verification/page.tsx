@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { get_unverified_faces, update_face } from "./actions";
+import {
+  delete_face,
+  get_unverified_faces,
+  update_face,
+  delete_all_unverified_faces,
+} from "./actions";
 import { Face } from "@/components/types/face";
 import { PersonSelect } from "@/components/layout/PersonSelect";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
-import { delete_face } from "../face/[id]/actions";
 import { usePendingCount } from "@/components/layout/PendingCountProvider";
 
 export default function VerificationPage() {
@@ -166,6 +170,33 @@ export default function VerificationPage() {
     }
   };
 
+  const handleRejectAll = async () => {
+    if (faces.length === 0) return;
+
+    if (
+      !confirm(
+        `Are you sure you want to reject ALL ${faces.length} unverified faces? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await delete_all_unverified_faces();
+      setFaces([]);
+      setSelectedFace(null);
+      setSelectedGroupId(null);
+      setSelectedPersonId("");
+      refreshPendingCount();
+    } catch (err) {
+      alert("Failed to reject all faces");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -204,13 +235,37 @@ export default function VerificationPage() {
     <div className="grow bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-            Face Verification
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Review and verify newly identified faces
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              Face Verification
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-2">
+              Review and verify newly identified faces
+            </p>
+          </div>
+          {!isLoading && faces.length > 0 && (
+            <button
+              onClick={handleRejectAll}
+              disabled={isLoading}
+              className="px-4 py-2 rounded-lg font-medium text-white bg-linear-to-br from-red-600 to-red-700 shadow hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Reject All
+            </button>
+          )}
         </div>
 
         {/* Loading State */}

@@ -17,3 +17,11 @@ export async function update_face(
 ) {
   await api.put(`/faces/${id}`, { person_id, verified });
 }
+
+export async function delete_all_unverified_faces() {
+  await api.delete("/faces/unverified/all");
+}
+
+export async function delete_face(id: string) {
+  await api.delete(`/faces/${id}`);
+}
