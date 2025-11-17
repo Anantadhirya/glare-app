@@ -9,7 +9,6 @@ export default function SignIn() {
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  console.log(isLoading);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
