@@ -5,6 +5,7 @@ import { PersonSelect } from "./PersonSelect";
 import { add_new_face } from "./actions";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 interface AddModalProps {
   isOpen: boolean;
@@ -74,7 +75,9 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
       handleClose();
       router.push(`/face/${id}`);
     } catch (err) {
-      alert("Failed to add face");
+      if (err instanceof AxiosError && err.response?.data?.detail)
+        alert(`Failed to add face: ${err.response.data.detail}`);
+      else alert("Failed to add face");
       console.error(err);
     } finally {
       setIsUploading(false);
