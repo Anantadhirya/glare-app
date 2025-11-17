@@ -24,6 +24,12 @@ export default function VerificationPage() {
   // For both identifying unknown and verifying suggested persons
   const [selectedPersonId, setSelectedPersonId] = useState("");
 
+  // Confirmation modal states
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [showRejectUnknownConfirm, setShowRejectUnknownConfirm] =
+    useState(false);
+  const [showRejectAllConfirm, setShowRejectAllConfirm] = useState(false);
+
   useEffect(() => {
     fetchFaces();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,12 +118,6 @@ export default function VerificationPage() {
   const handleReject = async () => {
     if (!selectedFace) return;
 
-    if (
-      !confirm("Are you sure you want to reject this face? It will be deleted.")
-    ) {
-      return;
-    }
-
     try {
       setProcessingId(selectedFace.id);
       await delete_face(selectedFace.id);
@@ -125,6 +125,7 @@ export default function VerificationPage() {
       const updatedFaces = faces.filter((f) => f.id !== selectedFace.id);
       setFaces(updatedFaces);
       setSelectedFace(updatedFaces[0] || null);
+      setShowRejectConfirm(false);
       refreshPendingCount();
     } catch (err) {
       alert("Failed to reject face");
@@ -140,15 +141,6 @@ export default function VerificationPage() {
     const groupPersonId = selectedFace.person_id;
     const groupFaces = faces.filter((f) => f.person_id === groupPersonId);
 
-    const message =
-      groupFaces.length > 1
-        ? `Are you sure you want to reject all ${groupFaces.length} faces in this group? They will all be deleted.`
-        : "Are you sure you want to reject this face? It will be deleted.";
-
-    if (!confirm(message)) {
-      return;
-    }
-
     try {
       setProcessingId(groupPersonId);
 
@@ -161,6 +153,7 @@ export default function VerificationPage() {
       setSelectedFace(updatedFaces[0] || null);
       setSelectedGroupId(null);
       setSelectedPersonId("");
+      setShowRejectUnknownConfirm(false);
       refreshPendingCount();
     } catch (err) {
       alert("Failed to reject faces");
@@ -173,14 +166,6 @@ export default function VerificationPage() {
   const handleRejectAll = async () => {
     if (faces.length === 0) return;
 
-    if (
-      !confirm(
-        `Are you sure you want to reject ALL ${faces.length} unverified faces? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
     try {
       setIsLoading(true);
       await delete_all_unverified_faces();
@@ -188,6 +173,7 @@ export default function VerificationPage() {
       setSelectedFace(null);
       setSelectedGroupId(null);
       setSelectedPersonId("");
+      setShowRejectAllConfirm(false);
       refreshPendingCount();
     } catch (err) {
       alert("Failed to reject all faces");
@@ -246,7 +232,7 @@ export default function VerificationPage() {
           </div>
           {!isLoading && faces.length > 0 && (
             <button
-              onClick={handleRejectAll}
+              onClick={() => setShowRejectAllConfirm(true)}
               disabled={isLoading}
               className="px-4 py-2 rounded-lg font-medium text-white bg-linear-to-br from-red-600 to-red-700 shadow hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
@@ -518,7 +504,7 @@ export default function VerificationPage() {
                               : "Identify & Verify"}
                           </button>
                           <button
-                            onClick={handleRejectUnknown}
+                            onClick={() => setShowRejectUnknownConfirm(true)}
                             disabled={processingId === selectedFace.person_id}
                             className="px-4 py-2 rounded-md font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           >
@@ -574,7 +560,7 @@ export default function VerificationPage() {
                               : "✓ Verify"}
                           </button>
                           <button
-                            onClick={handleReject}
+                            onClick={() => setShowRejectConfirm(true)}
                             disabled={processingId === selectedFace.id}
                             className="px-4 py-2 rounded-md font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           >
@@ -623,6 +609,184 @@ export default function VerificationPage() {
           </div>
         )}
       </div>
+
+      {/* Reject Single Face Confirmation Modal */}
+      {showRejectConfirm && selectedFace && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-full bg-linear-to-br from-red-500 to-pink-500 flex items-center justify-center shrink-0">
+                <svg
+                  className="h-6 w-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Reject Face
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <p className="text-slate-700 dark:text-slate-300 mb-6">
+              Are you sure you want to reject this face? It will be permanently
+              deleted from the system.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleReject}
+                disabled={processingId === selectedFace.id}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-white bg-linear-to-br from-red-600 to-pink-600 shadow hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processingId === selectedFace.id ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                onClick={() => setShowRejectConfirm(false)}
+                disabled={processingId === selectedFace.id}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Unknown Group Confirmation Modal */}
+      {showRejectUnknownConfirm && selectedFace && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-full bg-linear-to-br from-red-500 to-pink-500 flex items-center justify-center shrink-0">
+                <svg
+                  className="h-6 w-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Reject Unknown Person
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <p className="text-slate-700 dark:text-slate-300 mb-6">
+              {selectedGroupFaces.length > 1 ? (
+                <>
+                  Are you sure you want to reject all{" "}
+                  <strong>{selectedGroupFaces.length} faces</strong> in this
+                  group? They will all be permanently deleted.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to reject this face? It will be
+                  permanently deleted.
+                </>
+              )}
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleRejectUnknown}
+                disabled={processingId === selectedFace.person_id}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-white bg-linear-to-br from-red-600 to-pink-600 shadow hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processingId === selectedFace.person_id
+                  ? "Deleting..."
+                  : "Delete All"}
+              </button>
+              <button
+                onClick={() => setShowRejectUnknownConfirm(false)}
+                disabled={processingId === selectedFace.person_id}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject All Confirmation Modal */}
+      {showRejectAllConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-full bg-linear-to-br from-red-500 to-pink-500 flex items-center justify-center shrink-0">
+                <svg
+                  className="h-6 w-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Reject All Faces
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <p className="text-slate-700 dark:text-slate-300 mb-6">
+              Are you sure you want to reject{" "}
+              <strong>ALL {faces.length}</strong> unverified faces? This will
+              permanently delete all pending verifications from the system.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleRejectAll}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-white bg-linear-to-br from-red-600 to-pink-600 shadow hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Deleting..." : "Delete All"}
+              </button>
+              <button
+                onClick={() => setShowRejectAllConfirm(false)}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2 rounded-md font-medium text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
