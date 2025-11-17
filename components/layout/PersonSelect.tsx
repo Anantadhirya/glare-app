@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { PersonSimple } from "../types/person";
 import { get_simple_person_list, create_new_person } from "./actions";
+import toast from "react-hot-toast";
 
 interface PersonSelectProps {
   value: string; // selected person ID
@@ -78,7 +79,7 @@ export function PersonSelect({
       setShowDropdown(false);
       setActiveIndex(0);
     } catch (err) {
-      alert("Failed to add person");
+      toast.error("Failed to add person");
       console.error(err);
     } finally {
       setIsLoading(false);

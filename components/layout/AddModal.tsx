@@ -6,6 +6,7 @@ import { add_new_face } from "./actions";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 interface AddModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+      toast.error("Please select an image file");
       return;
     }
 
@@ -60,12 +61,12 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
 
   const handleSubmit = async () => {
     if (!selectedFile) {
-      alert("Please select an image");
+      toast.error("Please select an image");
       return;
     }
 
     if (!selectedPersonId) {
-      alert("Please select or add a person");
+      toast.error("Please select or add a person");
       return;
     }
 
@@ -73,11 +74,14 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
       setIsUploading(true);
       const { id } = await add_new_face(selectedPersonId, selectedFile);
       handleClose();
+      toast.success("Face added successfully!");
       router.push(`/face/${id}`);
     } catch (err) {
-      if (err instanceof AxiosError && err.response?.data?.detail)
-        alert(`Failed to add face: ${err.response.data.detail}`);
-      else alert("Failed to add face");
+      toast.error(
+        err instanceof AxiosError && err.response?.data?.detail
+          ? `Failed to add face: ${err.response.data.detail}`
+          : "Failed to add face"
+      );
       console.error(err);
     } finally {
       setIsUploading(false);

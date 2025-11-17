@@ -12,6 +12,7 @@ import { PersonSelect } from "@/components/layout/PersonSelect";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { usePendingCount } from "@/components/layout/PendingCountProvider";
+import toast from "react-hot-toast";
 
 export default function VerificationPage() {
   const { refreshPendingCount } = usePendingCount();
@@ -85,9 +86,14 @@ export default function VerificationPage() {
       setSelectedFace(updatedFaces[0] || null);
       setSelectedGroupId(null);
       setSelectedPersonId("");
+      toast.success(
+        `Successfully identified ${groupFaces.length} face${
+          groupFaces.length > 1 ? "s" : ""
+        }!`
+      );
       refreshPendingCount();
     } catch (err) {
-      alert("Failed to identify person");
+      toast.error("Failed to identify person");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -106,9 +112,10 @@ export default function VerificationPage() {
       const updatedFaces = faces.filter((f) => f.id !== selectedFace.id);
       setFaces(updatedFaces);
       setSelectedFace(updatedFaces[0] || null);
+      toast.success("Face verified successfully!");
       refreshPendingCount();
     } catch (err) {
-      alert("Failed to verify face");
+      toast.error("Failed to verify face");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -126,9 +133,10 @@ export default function VerificationPage() {
       setFaces(updatedFaces);
       setSelectedFace(updatedFaces[0] || null);
       setShowRejectConfirm(false);
+      toast.success("Face rejected successfully!");
       refreshPendingCount();
     } catch (err) {
-      alert("Failed to reject face");
+      toast.error("Failed to reject face");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -154,9 +162,14 @@ export default function VerificationPage() {
       setSelectedGroupId(null);
       setSelectedPersonId("");
       setShowRejectUnknownConfirm(false);
+      toast.success(
+        `Successfully rejected ${groupFaces.length} face${
+          groupFaces.length > 1 ? "s" : ""
+        }!`
+      );
       refreshPendingCount();
     } catch (err) {
-      alert("Failed to reject faces");
+      toast.error("Failed to reject faces");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -174,9 +187,10 @@ export default function VerificationPage() {
       setSelectedGroupId(null);
       setSelectedPersonId("");
       setShowRejectAllConfirm(false);
+      toast.success("All unverified faces rejected successfully!");
       refreshPendingCount();
     } catch (err) {
-      alert("Failed to reject all faces");
+      toast.error("Failed to reject all faces");
       console.error(err);
     } finally {
       setIsLoading(false);

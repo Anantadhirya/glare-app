@@ -7,6 +7,7 @@ import Link from "next/link";
 import { get_face_details, update_face, delete_face } from "./actions";
 import { Face } from "@/components/types/face";
 import { PersonSelect } from "@/components/layout/PersonSelect";
+import toast from "react-hot-toast";
 
 export default function FaceDetailPage() {
   const params = useParams();
@@ -54,8 +55,9 @@ export default function FaceDetailPage() {
       const updatedFace = await get_face_details(id);
       setFace(updatedFace);
       setIsEditing(false);
+      toast.success("Face updated successfully!");
     } catch (err) {
-      alert("Failed to update face");
+      toast.error("Failed to update face");
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -66,9 +68,10 @@ export default function FaceDetailPage() {
     try {
       setIsDeleting(true);
       await delete_face(id);
+      toast.success("Face deleted successfully!");
       router.push("/");
     } catch (err) {
-      alert("Failed to delete face");
+      toast.error("Failed to delete face");
       console.error(err);
       setIsDeleting(false);
     }

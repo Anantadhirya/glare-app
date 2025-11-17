@@ -10,6 +10,7 @@ import {
   delete_person,
 } from "./actions";
 import { PersonDetails } from "@/components/types/person";
+import toast from "react-hot-toast";
 
 export default function PersonDetailPage() {
   const params = useParams();
@@ -53,8 +54,9 @@ export default function PersonDetailPage() {
       await update_person_name(id, editedName.trim());
       setPerson({ ...person, name: editedName.trim() });
       setIsEditing(false);
+      toast.success("Name updated successfully!");
     } catch (err) {
-      alert("Failed to update name");
+      toast.error("Failed to update name");
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -65,9 +67,10 @@ export default function PersonDetailPage() {
     try {
       setIsDeleting(true);
       await delete_person(id);
+      toast.success("Person deleted successfully!");
       router.push("/");
     } catch (err) {
-      alert("Failed to delete person");
+      toast.error("Failed to delete person");
       console.error(err);
       setIsDeleting(false);
     }
