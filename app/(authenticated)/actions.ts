@@ -5,3 +5,7 @@ export async function get_all_persons() {
   const { data } = await api.get("/persons");
   return data as Person[];
 }
+
+export async function refresh_backend() {
+  await api.post("/reload-known-faces");
+}

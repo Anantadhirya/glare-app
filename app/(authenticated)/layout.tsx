@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { PendingCountProvider } from "@/components/layout/PendingCountProvider";
+import { refresh_backend } from "./actions";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    refresh_backend();
     setTimeout(() => {
       try {
         const token = localStorage.getItem("token");
