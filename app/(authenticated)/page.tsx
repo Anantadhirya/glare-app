@@ -11,6 +11,7 @@ export default function Home() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchPersons = async () => {
@@ -29,6 +30,11 @@ export default function Home() {
     fetchPersons();
   }, []);
 
+  // Filter persons based on search query
+  const filteredPersons = persons.filter((person) =>
+    person.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <main className="grow bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -42,8 +48,65 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Stats Summary */}
+        {/* Search Bar */}
         {!isLoading && !error && persons.length > 0 && (
+          <div className="mb-8">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <svg
+                  className="h-5 w-5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search persons by name..."
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/80 dark:bg-slate-800/70 backdrop-blur border border-slate-200/50 dark:border-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 shadow transition-all relative z-0"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 z-10"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                Found {filteredPersons.length}{" "}
+                {filteredPersons.length === 1 ? "person" : "persons"}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Stats Summary */}
+        {!isLoading && !error && persons.length > 0 && !searchQuery && (
           <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow p-6">
               <div className="flex items-center gap-3">
@@ -64,10 +127,10 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                    {persons.length}
+                    {searchQuery ? filteredPersons.length : persons.length}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Total Persons
+                    {searchQuery ? "Filtered" : "Total"} Persons
                   </p>
                 </div>
               </div>
@@ -92,7 +155,12 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                    {persons.reduce((sum, p) => sum + p.face_count, 0)}
+                    {searchQuery
+                      ? filteredPersons.reduce(
+                          (sum, p) => sum + p.face_count,
+                          0
+                        )
+                      : persons.reduce((sum, p) => sum + p.face_count, 0)}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     Total Faces
@@ -120,7 +188,16 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                    {persons.length > 0
+                    {searchQuery
+                      ? filteredPersons.length > 0
+                        ? (
+                            filteredPersons.reduce(
+                              (sum, p) => sum + p.face_count,
+                              0
+                            ) / filteredPersons.length
+                          ).toFixed(1)
+                        : "0.0"
+                      : persons.length > 0
                       ? (
                           persons.reduce((sum, p) => sum + p.face_count, 0) /
                           persons.length
@@ -201,80 +278,108 @@ export default function Home() {
 
         {/* Grid of Persons */}
         {!isLoading && !error && persons.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {persons.map((person) => (
-              <Link
-                key={person.id}
-                href={`/person/${person.id}`}
-                className="group bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow hover:shadow-lg transition-all hover:scale-[1.02] overflow-hidden"
-              >
-                {/* Image */}
-                <div className="aspect-square bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
-                  {person.sample_image_url ? (
-                    <Image
-                      src={person.sample_image_url}
-                      alt={person.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <svg
-                        className="h-24 w-24"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          <>
+            {filteredPersons.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredPersons.map((person) => (
+                  <Link
+                    key={person.id}
+                    href={`/person/${person.id}`}
+                    className="group bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow hover:shadow-lg transition-all hover:scale-[1.02] overflow-hidden"
+                  >
+                    {/* Image */}
+                    <div className="aspect-square bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+                      {person.sample_image_url ? (
+                        <Image
+                          src={person.sample_image_url}
+                          alt={person.name}
+                          fill
+                          className="object-cover"
                         />
-                      </svg>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <svg
+                            className="h-24 w-24"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {person.name === "Unknown" ? (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="text-amber-600 dark:text-amber-400">
-                          Unknown
+                    {/* Info */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {person.name === "Unknown" ? (
+                          <span className="inline-flex items-center gap-2">
+                            <span className="text-amber-600 dark:text-amber-400">
+                              Unknown
+                            </span>
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                              Identify
+                            </span>
+                          </span>
+                        ) : (
+                          person.name
+                        )}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span>
+                          {person.face_count}{" "}
+                          {person.face_count === 1 ? "face" : "faces"}
                         </span>
-                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
-                          Identify
-                        </span>
-                      </span>
-                    ) : (
-                      person.name
-                    )}
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span>
-                      {person.face_count}{" "}
-                      {person.face_count === 1 ? "face" : "faces"}
-                    </span>
-                  </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white/80 dark:bg-slate-800/70 backdrop-blur rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-lg p-12 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-slate-400 to-slate-500 mb-4">
+                  <svg
+                    className="h-8 w-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </div>
-              </Link>
-            ))}
-          </div>
+                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                  No results found
+                </h2>
+                <p className="text-slate-600 dark:text-slate-400">
+                  No persons match &quot;{searchQuery}&quot;
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
