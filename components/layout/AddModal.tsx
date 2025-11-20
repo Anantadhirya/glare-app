@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PersonSelect } from "./PersonSelect";
 import { add_new_face } from "./actions";
 import Image from "next/image";
@@ -19,8 +19,99 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCameraMode, setIsCameraMode] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
+
+  // Start camera
+  const startCamera = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Camera not supported in this browser");
+        return;
+      }
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+      setStream(mediaStream);
+      setIsCameraMode(true);
+
+      // Wait a bit for state to update before setting video source
+      setTimeout(() => {
+        if (videoRef.current && mediaStream) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      }, 100);
+    } catch (err: unknown) {
+      console.error("Camera error:", err);
+      const error = err as { name?: string; message?: string };
+      if (
+        error.name === "NotAllowedError" ||
+        error.name === "PermissionDeniedError"
+      ) {
+        toast.error("Camera permission denied. Please allow camera access.");
+      } else if (
+        error.name === "NotFoundError" ||
+        error.name === "DevicesNotFoundError"
+      ) {
+        toast.error("No camera found on this device");
+      } else if (
+        error.name === "NotReadableError" ||
+        error.name === "TrackStartError"
+      ) {
+        toast.error("Camera is already in use by another application");
+      } else {
+        toast.error(
+          "Failed to access camera: " + (error.message || "Unknown error")
+        );
+      }
+    }
+  };
+
+  // Stop camera
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setIsCameraMode(false);
+  };
+
+  // Capture photo from camera
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], "camera-capture.jpg", {
+              type: "image/jpeg",
+            });
+            handleFileSelect(file);
+            stopCamera();
+          }
+        }, "image/jpeg");
+      }
+    }
+  };
+
+  // Cleanup camera on unmount or modal close
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [stream]);
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -89,6 +180,7 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
   };
 
   const handleClose = () => {
+    stopCamera();
     setSelectedPersonId("");
     setSelectedFile(null);
     if (previewUrl) {
@@ -135,21 +227,107 @@ export function AddModal({ isOpen, onClose }: AddModalProps) {
         <div className="space-y-4">
           {/* File Upload Area */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Face Image
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Face Image
+              </label>
+              {!previewUrl && (
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium transition-colors ${
+                      !isCameraMode
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    Upload
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (isCameraMode) {
+                        stopCamera();
+                      } else {
+                        startCamera();
+                      }
+                    }}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 bg-slate-200 dark:bg-slate-700"
+                    style={{
+                      backgroundColor: isCameraMode ? "#3b82f6" : undefined,
+                    }}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+                        isCameraMode ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span
+                    className={`text-xs font-medium transition-colors ${
+                      isCameraMode
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    Camera
+                  </span>
+                </div>
+              )}
+            </div>
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all ${
-                isDragging
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                  : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500"
+              onClick={() => !isCameraMode && fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
+                isCameraMode
+                  ? "cursor-default border-blue-500"
+                  : `cursor-pointer ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500"
+                    }`
               }`}
             >
-              {previewUrl ? (
+              {isCameraMode && !previewUrl ? (
+                <div className="relative">
+                  <div className="aspect-square w-full max-h-64 relative rounded-lg overflow-hidden bg-black">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={capturePhoto}
+                      className="px-6 py-2 rounded-md font-medium text-white bg-linear-to-br from-blue-600 to-indigo-600 shadow hover:from-blue-700 hover:to-indigo-700 transition-all"
+                    >
+                      <svg
+                        className="h-5 w-5 inline mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      Capture Photo
+                    </button>
+                  </div>
+                  <canvas ref={canvasRef} className="hidden" />
+                </div>
+              ) : previewUrl ? (
                 <div className="relative">
                   <div className="aspect-square w-full max-h-64 relative rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700">
                     <Image
